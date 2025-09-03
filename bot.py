@@ -12,16 +12,21 @@ DATABASE_CHANNEL = -1001234567890  # Your private channel ID (with -100)
 
 bot = Client("movie_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Start command
 @bot.on_message(filters.private & filters.command("start"))
 async def start(client, message):
-    await message.reply_text(
-        "👋 Welcome! Join our sponsor channel to continue:",
-        reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton("📢 Join Sponsor", url=f"https://t.me/{SPONSOR_CHANNEL}")],
-             [InlineKeyboardButton("✅ I Joined", callback_data="check_sub")]]
+    args = message.command  # e.g. /start 12345
+    if len(args) > 1:
+        file_id = args[1]
+        await message.reply_text(
+            "👋 Welcome! Join our sponsor channel to continue:",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("📢 Join Sponsor", url=f"https://t.me/{SPONSOR_CHANNEL}")],
+                 [InlineKeyboardButton("✅ I Joined", callback_data=f"check_sub:{file_id}")]]
+            )
         )
-    )
+    else:
+        await message.reply_text("Send me a movie code or click a link in the channel.")
+    
 
 # Check subscription
 @bot.on_callback_query(filters.regex("check_sub"))
