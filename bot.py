@@ -46,7 +46,21 @@ async def check_subscription(client, callback_query):
     except:
         await callback_query.answer("⚠️ Error checking subscription", show_alert=True)
 
+@bot.on_message(filters.command("post") & filters.user([YOUR_TELEGRAM_ID]))
+async def post_to_channel(client, message):
+    args = message.text.split(" ", 2)
+    if len(args) < 3:
+        return await message.reply_text("Usage: /post <msg_id> <movie name>")
+    
+    msg_id, movie_name = args[1], args[2]
 
+    await client.send_message(
+        "your_public_channel_username",  # replace with your channel username
+        f"🎬 {movie_name}",
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("📥 Download", url=f"https://t.me/{client.me.username}?start={msg_id}")]]
+        )
+                                   )
 
 # Fetch from database channel by movie code (message link or ID)
 @bot.on_message(filters.private & filters.text)
