@@ -18,28 +18,35 @@ async def start(client, message):
     if len(args) > 1:
         file_id = args[1]
         await message.reply_text(
-            "👋 Welcome! Join our sponsor channel to continue:",
+            "👋 Welcome! Join the channel to continue:",
             reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("📢 Join Sponsor", url=f"https://t.me/{SPONSOR_CHANNEL}")],
-                 [InlineKeyboardButton("✅ I Joined", callback_data=f"check_sub:{file_id}")]]
+                [[InlineKeyboardButton("📢 Join channel", url=f"https://t.me/{SPONSOR_CHANNEL}")],
+                 [InlineKeyboardButton("✅ Joined", callback_data=f"check_sub:{file_id}")]]
             )
         )
     else:
-        await message.reply_text("Send me a movie code or click a link in the channel.")
-    
+        await message.reply_text("click a link in the channel.")
 
-# Check subscription
-@bot.on_callback_query(filters.regex("check_sub"))
+@bot.on_callback_query(filters.regex(r"check_sub:(.*)"))
 async def check_subscription(client, callback_query):
     user = callback_query.from_user.id
+    file_id = callback_query.data.split(":")[1]
+
     try:
         member = await client.get_chat_member(f"@{SPONSOR_CHANNEL}", user)
         if member.status in ["member", "administrator", "creator"]:
-            await callback_query.message.edit("✅ Verified! Send me movie code now.")
+            await callback_query.message.edit("✅ Verified! Fetching your movie...")
+            try:
+                msg = await client.get_messages(DATABASE_CHANNEL, int(file_id))
+                await msg.copy(callback_query.message.chat.id)
+            except:
+                await callback_query.message.reply_text("❌ File not found in database.")
         else:
-            await callback_query.answer("❌ You must join sponsor channel first!", show_alert=True)
+            await callback_query.answer("❌ Join the channel first!", show_alert=True)
     except:
         await callback_query.answer("⚠️ Error checking subscription", show_alert=True)
+
+
 
 # Fetch from database channel by movie code (message link or ID)
 @bot.on_message(filters.private & filters.text)
